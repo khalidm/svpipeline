@@ -2,4 +2,4 @@
 Canonical name for the program
 '''
 
-program_name = "thepipeline"
+program_name = "svpipeline"
