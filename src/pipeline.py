@@ -178,7 +178,7 @@ def make_pipeline(state):
         task_func=stages.duplications_delly,
         name='duplications_delly',
         input=output_from('local_realignment_gatk2'),
-        output='delly.DUP.vcf')
+        output='All.delly.DUP.vcf')
         .follows('index_alignment'))
 
     # Call INVs with DELLY
@@ -186,8 +186,8 @@ def make_pipeline(state):
         task_func=stages.inversions_delly,
         name='inversions_delly',
         input=output_from('local_realignment_gatk2'),
-        filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        output='variants/{sample[0]}.delly.INV.vcf')
+        # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
+        output='variants/All.delly.INV.vcf')
         .follows('index_alignment'))
 
     # Call TRAs with DELLY
@@ -195,8 +195,8 @@ def make_pipeline(state):
         task_func=stages.translocations_delly,
         name='translocations_delly',
         input=output_from('local_realignment_gatk2'),
-        filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        output='variants/{sample[0]}.delly.TRA.vcf')
+        # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
+        output='variants/All.delly.TRA.vcf')
         .follows('index_alignment'))
 
     # Call INSs with DELLY
@@ -204,8 +204,8 @@ def make_pipeline(state):
         task_func=stages.insertions_delly,
         name='insertions_delly',
         input=output_from('local_realignment_gatk2'),
-        filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        output='variants/{sample[0]}.delly.INS.vcf')
+        # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
+        output='variants/All.delly.INS.vcf')
         .follows('index_alignment'))
 
 
