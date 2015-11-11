@@ -161,6 +161,11 @@ class Stages(object):
                           bams_in=bam_files, merged_bam_out=bam_out)
         self.run_picard('merge_sample_bams', picard_args)
 
+     def index_bam(self, bam_in, index_out):
+        '''Index a bam file with samtools'''
+        command = 'samtools index {bam}'.format(bam=bam_in)
+        run_stage(self.state, 'index_bam', command)
+
     def call_haplotypecaller_gatk(self, bam_in, vcf_out):
         '''Call variants using GATK'''
         # safe_make_dir('variants}'.format(sample=sample_id))
@@ -318,3 +323,52 @@ class Stages(object):
                     "--variant {combined_vcf} -select 'DP > 100' -o {vcf_out}".format(reference=self.reference,
                                                                                       combined_vcf=combined_vcf, vcf_out=vcf_out)
         self.run_gatk('select_variants_gatk', gatk_args)
+
+        def deletions_delly(self, bams_in, vcf_out):
+        '''Call deletions with delly'''
+        bams_args = ' '.join(bams_in)
+        threads = self.state.config.get_stage_option('structural_variants_delly', 'cores')
+        exclude = self.state.config.get_stage_option('structural_variants_delly', 'exclude')
+        command = 'OMP_NUM_THREADS={threads} delly -t DEL -x {exclude} -o {vcf_out} -g {reference} {bams}' \
+            .format(threads=threads, exclude=exclude, vcf_out=vcf_out, reference=self.reference, bams=bams_args)
+        run_stage(self.state, 'structural_variants_delly', command)
+
+    ####
+    # DELLY
+    ####
+    
+    def duplications_delly(self, bams_in, vcf_out):
+        '''Call duplicaitons with delly'''
+        bams_args = ' '.join(bams_in)
+        threads = self.state.config.get_stage_option('structural_variants_delly', 'cores')
+        exclude = self.state.config.get_stage_option('structural_variants_delly', 'exclude')
+        command = 'OMP_NUM_THREADS={threads} delly -t DUP -x {exclude} -o {vcf_out} -g {reference} {bams}' \
+            .format(threads=threads, exclude=exclude, vcf_out=vcf_out, reference=self.reference, bams=bams_args)
+        run_stage(self.state, 'structural_variants_delly', command)
+
+    def inversions_delly(self, bams_in, vcf_out):
+        '''Call inversions with delly'''
+        bams_args = ' '.join(bams_in)
+        threads = self.state.config.get_stage_option('structural_variants_delly', 'cores')
+        exclude = self.state.config.get_stage_option('structural_variants_delly', 'exclude')
+        command = 'OMP_NUM_THREADS={threads} delly -t INV -x {exclude} -o {vcf_out} -g {reference} {bams}' \
+            .format(threads=threads, exclude=exclude, vcf_out=vcf_out, reference=self.reference, bams=bams_args)
+        run_stage(self.state, 'structural_variants_delly', command)
+
+    def translocations_delly(self, bams_in, vcf_out):
+        '''Call translocatins with delly'''
+        bams_args = ' '.join(bams_in)
+        threads = self.state.config.get_stage_option('structural_variants_delly', 'cores')
+        exclude = self.state.config.get_stage_option('structural_variants_delly', 'exclude')
+        command = 'OMP_NUM_THREADS={threads} delly -t TRA -x {exclude} -o {vcf_out} -g {reference} {bams}' \
+            .format(threads=threads, exclude=exclude, vcf_out=vcf_out, reference=self.reference, bams=bams_args)
+        run_stage(self.state, 'structural_variants_delly', command)
+
+    def insertions_delly(self, bams_in, vcf_out):
+        '''Call insertions with delly'''
+        bams_args = ' '.join(bams_in)
+        threads = self.state.config.get_stage_option('structural_variants_delly', 'cores')
+        exclude = self.state.config.get_stage_option('structural_variants_delly', 'exclude')
+        command = 'OMP_NUM_THREADS={threads} delly -t INS -x {exclude} -o {vcf_out} -g {reference} {bams}' \
+            .format(threads=threads, exclude=exclude, vcf_out=vcf_out, reference=self.reference, bams=bams_args)
+        run_stage(self.state, 'structural_variants_delly', command)
