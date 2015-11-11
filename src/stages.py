@@ -104,24 +104,22 @@ class Stages(object):
         cores = self.get_stage_options('chrom_intervals_gatk', 'cores')
         gatk_args = '-T RealignerTargetCreator -R {reference} -I {bam} ' \
                     '--num_threads {threads} --known {mills_hg19} ' \
-                    '--known {one_k_g_indels} -L {interval_hg19} ' \
+                    '--known {one_k_g_indels} ' \
                     '-o {out}'.format(reference=self.reference, bam=bam_in,
                                       threads=cores, mills_hg19=self.mills_hg19,
                                       one_k_g_indels=self.one_k_g_indels,
-                                      interval_hg19=self.interval_hg19,
                                       out=intervals_out)
         self.run_gatk('chrom_intervals_gatk', gatk_args)
 
     def local_realignment_gatk(self, inputs, bam_out):
         '''Local realign reads using GATK'''
         target_intervals_in, bam_in = inputs
-        gatk_args = "-T IndelRealigner -R {reference} -I {bam} -L {interval_hg19} " \
+        gatk_args = "-T IndelRealigner -R {reference} -I {bam} " \
                     "-targetIntervals {target_intervals} -known {mills_hg19} " \
                     "-known {one_k_g_indels} " \
                     "-o {out}".format(reference=self.reference, bam=bam_in,
                                       mills_hg19=self.mills_hg19,
                                       one_k_g_indels=self.one_k_g_indels,
-                                      interval_hg19=self.interval_hg19,
                                       target_intervals=target_intervals_in,
                                       out=bam_out)
         self.run_gatk('local_realignment_gatk', gatk_args)
