@@ -9,7 +9,7 @@ from stages import Stages
 def make_pipeline(state):
     '''Build the pipeline by constructing stages and connecting them together'''
     # Build an empty pipeline
-    pipeline = Pipeline(name='thepipeline')
+    pipeline = Pipeline(name='svpipeline')
     # Get a list of paths to all the FASTQ files
     fastq_files = state.config.get_option('fastqs')
     # Stages are dependent on the state
