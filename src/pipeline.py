@@ -162,14 +162,15 @@ def make_pipeline(state):
         input=output_from('local_realignment_gatk2'),
         # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).sorted.bam'),
         filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        output='alignment/{sample[0]}.sorted.bam.bai')
+        output='alignment/{sample[0]}.merged.dedup.realn.bam.bai')
 
     (pipeline.merge(
         task_func=stages.deletions_delly,
         name='deletions_delly',
         input=output_from('local_realignment_gatk2'),
-        filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        output='variants/{sample[0]}.delly.DEL.vcf')
+        # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
+        # output='variants/{sample[0]}.delly.DEL.vcf')
+        output='variants/All.delly.DEL.vcf')
         .follows('index_alignment'))
 
     # Call DUPs with DELLY
