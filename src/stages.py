@@ -161,7 +161,7 @@ class Stages(object):
                           bams_in=bam_files, merged_bam_out=bam_out)
         self.run_picard('merge_sample_bams', picard_args)
 
-     def index_bam(self, bam_in, index_out):
+    def index_bam(self, bam_in, index_out):
         '''Index a bam file with samtools'''
         command = 'samtools index {bam}'.format(bam=bam_in)
         run_stage(self.state, 'index_bam', command)
@@ -324,7 +324,7 @@ class Stages(object):
                                                                                       combined_vcf=combined_vcf, vcf_out=vcf_out)
         self.run_gatk('select_variants_gatk', gatk_args)
 
-        def deletions_delly(self, bams_in, vcf_out):
+    def deletions_delly(self, bams_in, vcf_out):
         '''Call deletions with delly'''
         bams_args = ' '.join(bams_in)
         threads = self.state.config.get_stage_option('structural_variants_delly', 'cores')
@@ -336,7 +336,7 @@ class Stages(object):
     ####
     # DELLY
     ####
-    
+
     def duplications_delly(self, bams_in, vcf_out):
         '''Call duplicaitons with delly'''
         bams_args = ' '.join(bams_in)
