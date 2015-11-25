@@ -81,7 +81,7 @@ def make_pipeline(state):
         input=output_from('realigner_target_creator'),
         # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).chr.intervals'),
         filter=formatter(
-            '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).intervals'),
+            '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).intervals'),
         # add_inputs=add_inputs('{path[0]}/{sample[0]}.sort.dedup.bam'),
         add_inputs=add_inputs(
             'alignments/{sample[0]}/{readid[0]}_{lib[0]}_{lane[0]}_{sample[0]}.sort.dedup.bam'),
@@ -103,7 +103,7 @@ def make_pipeline(state):
         input=output_from('base_recalibration_gatk'),
         # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).recal_data.csv'),
         filter=formatter(
-            '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).recal_data.csv'),
+            '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).recal_data.csv'),
         # add_inputs=add_inputs('{path[0]}/{sample[0]}.sort.dedup.realn.bam'),
         add_inputs=add_inputs(
             'alignments/{sample[0]}/{readid[0]}_{lib[0]}_{lane[0]}_{sample[0]}.sort.dedup.realn.bam'),
@@ -116,7 +116,7 @@ def make_pipeline(state):
         task_func=stages.merge_sample_bams,
         name='merge_sample_bams',
         filter=formatter(
-            '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).sort.dedup.realn.recal.bam'),
+            '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).sort.dedup.realn.recal.bam'),
         # inputs=add_inputs('alignments/{sample[0]}/{readid[0]}_{lib[0]}_{lane[0]}_{sample[0]}.sort.dedup.realn.bam'),
         input=output_from('print_reads_gatk'),
         output='alignments/{sample[0]}/{sample[0]}.merged.bam')
