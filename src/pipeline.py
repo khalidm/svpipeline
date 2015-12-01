@@ -146,7 +146,7 @@ def make_pipeline(state):
         task_func=stages.local_realignment_gatk,
         name='local_realignment_gatk2',
         input=output_from('realigner_target_creator2'),
-        filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.intervals'),
+        filter=formatter('.+/(?P<sample>[a-zA-Z0-9-]+).merged.intervals'),
         # filter=formatter(
         # '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).intervals'),
         # add_inputs=add_inputs('{path[0]}/{sample[0]}.sort.dedup.bam'),
