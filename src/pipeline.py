@@ -305,6 +305,7 @@ def make_pipeline(state):
         name='apply_gridss',
         input=output_from('merge_sample_bams'),
         filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.bam'),
+        extras=['{sample[0]}'],
         output='svariants/{sample[0]}/{sample[0]}')
 
 

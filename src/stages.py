@@ -370,7 +370,7 @@ class Stages(object):
 
 
     def apply_gridss(self, inputs, vcf_out, sample_id):
-        '''Apply SnpEFF'''
+        '''Apply GRIDSS'''
         input_bam = inputs
         #cores = self.get_stage_options('apply_snpeff', 'cores')
         safe_make_dir('svariants')
