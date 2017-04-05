@@ -14,6 +14,7 @@ import os
 # PICARD_JAR = '$PICARD_HOME/lib/picard-1.69.jar'
 PICARD_JAR = '/vlsci/VR0002/kmahmood/Programs/picard/picard-tools-2.0.1/picard.jar'
 SNPEFF_JAR = '/usr/local/easybuild/software/snpEff/4.1d-Java-1.7.0_80/snpEff.jar'
+GRIDSS_JAR = '/vlsci/VR0002/kmahmood/Programs/gridss/gridss-1.3.4-jar-with-dependencies.jar'
 
 GATK_JAR = '$GATK_HOME/GenomeAnalysisTK.jar'
 
@@ -56,6 +57,10 @@ class Stages(object):
     def run_snpeff(self, stage, args):
         mem = int(self.state.config.get_stage_options(stage, 'mem'))
         return run_java(self.state, stage, SNPEFF_JAR, mem, args)
+
+    def run_gridss(self, stage, args):
+        mem = int(self.state.config.get_stage_options(stage, 'mem'))
+        return run_java(self.state, stage, GRIDSS_JAR, mem, args)
 
     def run_gatk(self, stage, args):
         mem = int(self.state.config.get_stage_options(stage, 'mem'))
@@ -361,6 +366,22 @@ class Stages(object):
                     snpeff_conf=self.snpeff_conf, vcf_in=vcf_in, vcf_out=vcf_out)
         self.run_snpeff('apply_snpeff', snpeff_command)
         #run_snpeff(self.state, 'apply_snpeff', snpeff_command)
+
+
+    def apply_gridss(self, inputs, vcf_out, sample_id):
+        '''Apply SnpEFF'''
+        input_bam = inputs
+        #cores = self.get_stage_options('apply_snpeff', 'cores')
+        safe_make_dir('svariants')
+        safe_make_dir('svariants/{sample}'.format(sample=sample_id))
+        gridss_command = "REFERENCE_SEQUENCE=\"{reference}\" " \
+                "INPUT=\"{input_bam}\" OUTPUT=\"{vcf_out}\" ASSEMBLY=\"{}\" " \
+	            "BLACKLIST=\"{blacklist}\"".format(
+                    reference=self.reference, input_bam=input_bam, vcf_out=vcf_out,
+                    blacklist=blacklist)
+        self.run_gridss('apply_gridss', gridss_command)
+        #run_snpeff(self.state, 'apply_snpeff', snpeff_command)
+
 
     # def combine_variants_gatk(self, inputs, vcf_out):
     #     '''Combine variants using GATK'''

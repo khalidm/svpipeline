@@ -296,6 +296,17 @@ def make_pipeline(state):
     #     input=output_from('combine_variants_gatk'),
     #     filter=suffix('.combined.vcf'),
     #     output='.selected.vcf')
+        # Index the alignment with samtools
+    # Index the alignment with samtools
+
+    # Run GRIDSS
+    pipeline.transform(
+        task_func=stages.apply_gridss,
+        name='apply_gridss',
+        input=output_from('merge_sample_bams'),
+        filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.bam'),
+        output='svariants/{sample[0]}/{sample[0]}')
+
 
 
     return pipeline
