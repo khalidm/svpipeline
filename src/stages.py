@@ -47,6 +47,7 @@ class Stages(object):
         self.snpeff_conf = self.get_options('snpeff_conf')
         self.vep_path = self.get_options('vep_path')
         self.vt_path = self.get_options('vt_path')
+        self.blacklist = self.get_options('blacklist')
         # self.GBR_mergeGvcf = self.get_options('GBR_mergeGvcf')
         # self.FIN_mergeGvcf = self.get_options('FIN_mergeGvcf')
 
@@ -378,7 +379,7 @@ class Stages(object):
                 "INPUT=\"{input_bam}\" OUTPUT=\"{vcf_out}\" ASSEMBLY=\"{}\" " \
 	            "BLACKLIST=\"{blacklist}\"".format(
                     reference=self.reference, input_bam=input_bam, vcf_out=vcf_out,
-                    blacklist=blacklist)
+                    blacklist=self.blacklist)
         self.run_gridss('apply_gridss', gridss_command)
         #run_snpeff(self.state, 'apply_snpeff', snpeff_command)
 
