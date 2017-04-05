@@ -9,7 +9,7 @@ from stages import Stages
 def make_pipeline(state):
     '''Build the pipeline by constructing stages and connecting them together'''
     # Build an empty pipeline
-    pipeline = Pipeline(name='svpipeline')
+    pipeline = Pipeline(name='thepipeline')
     # Get a list of paths to all the FASTQ files
     fastq_files = state.config.get_option('fastqs')
     # Stages are dependent on the state
@@ -33,13 +33,15 @@ def make_pipeline(state):
         # We assume the sample name may consist of only alphanumeric
         # characters.
         # filter=formatter('(?P<path>.+)/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+)_1.fastq.gz'),
+        # 1_HFYLVCCXX:2:TCCGCGAA_2_GE0343_1.fastq.gz
+        # 1_HCJWFBCXX:GGACTCCT_L001_9071584415739518822-AGRF-023_R2.fastq.gz
         filter=formatter(
-            '.+/(?P<readid>[a-zA-Z0-9-.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+)_1.fastq.gz'),
+            '.+/(?P<readid>[a-zA-Z0-9-]+)_(?P<lib>[a-zA-Z0-9-:]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+)_R1.fastq.gz'),
         # Add one more inputs to the stage:
         #    1. The corresponding R2 FASTQ file
         # e.g. C2WPF.5_Solexa-201237_5_X4311_1.fastq.gz
         add_inputs=add_inputs(
-            '{path[0]}/{readid[0]}_{lib[0]}_{lane[0]}_{sample[0]}_2.fastq.gz'),
+            '{path[0]}/{readid[0]}_{lib[0]}_{lane[0]}_{sample[0]}_R2.fastq.gz'),
         # Add an "extra" argument to the state (beyond the inputs and outputs)
         # which is the sample name. This is needed within the stage for finding out
         # sample specific configuration options
@@ -81,7 +83,7 @@ def make_pipeline(state):
         input=output_from('realigner_target_creator'),
         # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).chr.intervals'),
         filter=formatter(
-            '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).intervals'),
+            '.+/(?P<readid>[a-zA-Z0-9-]+)_(?P<lib>[a-zA-Z0-9-:]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).intervals'),
         # add_inputs=add_inputs('{path[0]}/{sample[0]}.sort.dedup.bam'),
         add_inputs=add_inputs(
             'alignments/{sample[0]}/{readid[0]}_{lib[0]}_{lane[0]}_{sample[0]}.sort.dedup.bam'),
@@ -103,7 +105,9 @@ def make_pipeline(state):
         input=output_from('base_recalibration_gatk'),
         # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).recal_data.csv'),
         filter=formatter(
-            '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).recal_data.csv'),
+            # '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).recal_data.csv'),
+            '.+/(?P<readid>[a-zA-Z0-9-]+)_(?P<lib>[a-zA-Z0-9-:]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).recal_data.csv'),
+            # '.+/(?P<readid>[a-zA-Z0-9-]+)_(?P<lib>[a-zA-Z0-9-:]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).recal_data.csv'),
         # add_inputs=add_inputs('{path[0]}/{sample[0]}.sort.dedup.realn.bam'),
         add_inputs=add_inputs(
             'alignments/{sample[0]}/{readid[0]}_{lib[0]}_{lane[0]}_{sample[0]}.sort.dedup.realn.bam'),
@@ -116,161 +120,165 @@ def make_pipeline(state):
         task_func=stages.merge_sample_bams,
         name='merge_sample_bams',
         filter=formatter(
-            '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).sort.dedup.realn.recal.bam'),
+            # '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).sort.dedup.realn.recal.bam'),
+            '.+/(?P<readid>[a-zA-Z0-9-]+)_(?P<lib>[a-zA-Z0-9-:]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9-]+).sort.dedup.realn.recal.bam'),
         # inputs=add_inputs('alignments/{sample[0]}/{readid[0]}_{lib[0]}_{lane[0]}_{sample[0]}.sort.dedup.realn.bam'),
         input=output_from('print_reads_gatk'),
         output='alignments/{sample[0]}/{sample[0]}.merged.bam')
 
-    # Mark duplicates in the BAM file using Picard
-    pipeline.transform(
-        task_func=stages.mark_duplicates_picard,
-        name='mark_duplicates_picard2',
-        input=output_from('merge_sample_bams'),
-        # filter=formatter(
-        # '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).merged.bam'),
-        filter=suffix('.merged.bam'),
-        # XXX should make metricsup an extra output?
-        output=['.merged.dedup.bam', '.metricsdup'])
-
-    # Local realignment2 using GATK
-    # Generate RealignerTargetCreator using GATK
-    pipeline.transform(
-        task_func=stages.realigner_target_creator,
-        name='realigner_target_creator2',
-        input=output_from('mark_duplicates_picard2'),
-        filter=suffix('.dedup.bam'),
-        output='.intervals')
-
-    # Local realignment using GATK
-    (pipeline.transform(
-        task_func=stages.local_realignment_gatk,
-        name='local_realignment_gatk2',
-        input=output_from('realigner_target_creator2'),
-        filter=formatter('.+/(?P<sample>[a-zA-Z0-9-]+).merged.intervals'),
-        # filter=formatter(
-        # '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).intervals'),
-        # add_inputs=add_inputs('{path[0]}/{sample[0]}.sort.dedup.bam'),
-        add_inputs=add_inputs(
-            'alignments/{sample[0]}/{sample[0]}.merged.dedup.bam'),
-        output='alignments/{sample[0]}/{sample[0]}.merged.dedup.realn.bam')
-        .follows('mark_duplicates_picard2'))
-
-    # Index the alignment with samtools
-    pipeline.transform(
-        task_func=stages.index_bam,
-        name='index_alignment',
-        input=output_from('local_realignment_gatk2'),
-        # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).sorted.bam'),
-        filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        output='alignment/{sample[0]}.merged.dedup.realn.bam.bai')
-
-    (pipeline.merge(
-        task_func=stages.deletions_delly,
-        name='deletions_delly',
-        input=output_from('local_realignment_gatk2'),
-        # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        # output='variants/{sample[0]}.delly.DEL.vcf')
-        output='variants/All.delly.DEL.vcf')
-        .follows('index_alignment'))
-
-    # Call DUPs with DELLY
-    (pipeline.merge(
-        task_func=stages.duplications_delly,
-        name='duplications_delly',
-        input=output_from('local_realignment_gatk2'),
-        output='All.delly.DUP.vcf')
-        .follows('index_alignment'))
-
-    # Call INVs with DELLY
-    (pipeline.merge(
-        task_func=stages.inversions_delly,
-        name='inversions_delly',
-        input=output_from('local_realignment_gatk2'),
-        # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        output='variants/All.delly.INV.vcf')
-        .follows('index_alignment'))
-
-    # Call TRAs with DELLY
-    (pipeline.merge(
-        task_func=stages.translocations_delly,
-        name='translocations_delly',
-        input=output_from('local_realignment_gatk2'),
-        # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        output='variants/All.delly.TRA.vcf')
-        .follows('index_alignment'))
-
-    # Call INSs with DELLY
-    (pipeline.merge(
-        task_func=stages.insertions_delly,
-        name='insertions_delly',
-        input=output_from('local_realignment_gatk2'),
-        # filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-        output='variants/All.delly.INS.vcf')
-        .follows('index_alignment'))
-
-
-    # # Call variants using GATK
+    # # Mark duplicates in the BAM file using Picard
     # pipeline.transform(
-    #     task_func=stages.call_haplotypecaller_gatk,
-    #     name='call_haplotypecaller_gatk',
-    #     input=output_from('local_realignment_gatk2'),
-    #     # filter=suffix('.merged.dedup.realn.bam'),
-    #     filter=formatter('.+/(?P<sample>[a-zA-Z0-9]+).merged.dedup.realn.bam'),
-    #     output='variants/{sample[0]}.g.vcf')
+    #     task_func=stages.mark_duplicates_picard,
+    #     name='mark_duplicates_picard2',
+    #     input=output_from('merge_sample_bams'),
+    #     # filter=formatter(
+    #     # '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).merged.bam'),
+    #     filter=suffix('.merged.bam'),
+    #     # XXX should make metricsup an extra output?
+    #     output=['.merged.dedup.bam', '.metricsdup'])
     #
-    # # Combine G.VCF files for all samples using GATK
-    # pipeline.merge(
-    #     task_func=stages.combine_gvcf_gatk,
-    #     name='combine_gvcf_gatk',
-    #     input=output_from('call_haplotypecaller_gatk'),
-    #     output='variants/ALL.combined.vcf')
-    #
-    # # Genotype G.VCF files using GATK
+    # # Local realignment2 using GATK
+    # # Generate RealignerTargetCreator using GATK
     # pipeline.transform(
-    #     task_func=stages.genotype_gvcf_gatk,
-    #     name='genotype_gvcf_gatk',
-    #     input=output_from('combine_gvcf_gatk'),
-    #     filter=suffix('.combined.vcf'),
-    #     output='.raw.vcf')
+    #     task_func=stages.realigner_target_creator,
+    #     name='realigner_target_creator2',
+    #     input=output_from('mark_duplicates_picard2'),
+    #     filter=suffix('.dedup.bam'),
+    #     output='.intervals')
     #
-    # # SNP recalibration using GATK
-    # pipeline.transform(
-    #     task_func=stages.snp_recalibrate_gatk,
-    #     name='snp_recalibrate_gatk',
-    #     input=output_from('genotype_gvcf_gatk'),
-    #     filter=suffix('.raw.vcf'),
-    #     output=['.snp_recal', '.snp_tranches', '.snp_plots.R'])
-    #
-    # # INDEL recalibration using GATK
-    # pipeline.transform(
-    #     task_func=stages.indel_recalibrate_gatk,
-    #     name='indel_recalibrate_gatk',
-    #     input=output_from('genotype_gvcf_gatk'),
-    #     filter=suffix('.raw.vcf'),
-    #     output=['.indel_recal', '.indel_tranches', '.indel_plots.R'])
-    #
-    # # Apply SNP recalibration using GATK
+    # # Local realignment using GATK
     # (pipeline.transform(
-    #     task_func=stages.apply_snp_recalibrate_gatk,
-    #     name='apply_snp_recalibrate_gatk',
-    #     input=output_from('genotype_gvcf_gatk'),
-    #     filter=suffix('.raw.vcf'),
-    #     add_inputs=add_inputs(['ALL.snp_recal', 'ALL.snp_tranches']),
-    #     output='.recal_SNP.vcf')
-    #     .follows('snp_recalibrate_gatk'))
-    #
-    # # Apply INDEL recalibration using GATK
-    # (pipeline.transform(
-    #     task_func=stages.apply_indel_recalibrate_gatk,
-    #     name='apply_indel_recalibrate_gatk',
-    #     input=output_from('genotype_gvcf_gatk'),
-    #     filter=suffix('.raw.vcf'),
+    #     task_func=stages.local_realignment_gatk,
+    #     name='local_realignment_gatk2',
+    #     input=output_from('realigner_target_creator2'),
+    #     filter=formatter('.+/(?P<sample>[a-zA-Z0-9-]+).merged.intervals'),
+    #     # filter=formatter(
+    #     # '.+/(?P<readid>[a-zA-Z0-9-\.]+)_(?P<lib>[a-zA-Z0-9-]+)_(?P<lane>[a-zA-Z0-9]+)_(?P<sample>[a-zA-Z0-9]+).intervals'),
+    #     # add_inputs=add_inputs('{path[0]}/{sample[0]}.sort.dedup.bam'),
     #     add_inputs=add_inputs(
-    #         ['ALL.indel_recal', 'ALL.indel_tranches']),
-    #     output='.recal_INDEL.vcf')
-    #     .follows('indel_recalibrate_gatk'))
-    #
-    # # Combine variants using GATK
+    #         'alignments/{sample[0]}/{sample[0]}.merged.dedup.bam'),
+    #     output='alignments/{sample[0]}/{sample[0]}.merged.dedup.realn.bam')
+    #     .follows('mark_duplicates_picard2'))
+
+    # Call variants using GATK
+    pipeline.transform(
+        task_func=stages.call_haplotypecaller_gatk,
+        name='call_haplotypecaller_gatk',
+        input=output_from('merge_sample_bams'),
+        # filter=suffix('.merged.dedup.realn.bam'),
+        filter=formatter('.+/(?P<sample>[a-zA-Z0-9-]+).merged.bam'),
+        output='variants/{sample[0]}.g.vcf')
+
+    # Combine G.VCF files for all samples using GATK
+    pipeline.merge(
+        task_func=stages.combine_gvcf_gatk,
+        name='combine_gvcf_gatk',
+        input=output_from('call_haplotypecaller_gatk'),
+        output='variants/ALL.combined.vcf')
+
+    # Genotype G.VCF files using GATK
+    pipeline.transform(
+        task_func=stages.genotype_gvcf_gatk,
+        name='genotype_gvcf_gatk',
+        input=output_from('combine_gvcf_gatk'),
+        filter=suffix('.combined.vcf'),
+        output='.raw.vcf')
+
+    # Annotate VCF file using GATK
+    pipeline.transform(
+       task_func=stages.variant_annotator_gatk,
+       name='variant_annotator_gatk',
+       input=output_from('genotype_gvcf_gatk'),
+       filter=suffix('.raw.vcf'),
+       output='.raw.annotate.vcf')
+
+    # SNP recalibration using GATK
+    pipeline.transform(
+        task_func=stages.snp_recalibrate_gatk,
+        name='snp_recalibrate_gatk',
+        input=output_from('variant_annotator_gatk'),
+        filter=suffix('.raw.annotate.vcf'),
+        output=['.snp_recal', '.snp_tranches', '.snp_plots.R'])
+
+    # Apply SNP recalibration using GATK
+    (pipeline.transform(
+        task_func=stages.apply_snp_recalibrate_gatk,
+        name='apply_snp_recalibrate_gatk',
+        input=output_from('variant_annotator_gatk'),
+        filter=suffix('.raw.annotate.vcf'),
+        add_inputs=add_inputs(['variants/ALL.snp_recal', 'variants/ALL.snp_tranches']),
+        output='.recal_SNP.vcf')
+        .follows('snp_recalibrate_gatk'))
+
+    # INDEL recalibration using GATK
+    pipeline.transform(
+        task_func=stages.indel_recalibrate_gatk,
+        name='indel_recalibrate_gatk',
+        input=output_from('apply_snp_recalibrate_gatk'),
+        filter=suffix('.recal_SNP.vcf'),
+        output=['.indel_recal', '.indel_tranches', '.indel_plots.R'])
+
+    # Apply INDEL recalibration using GATK
+    (pipeline.transform(
+        task_func=stages.apply_indel_recalibrate_gatk,
+        name='apply_indel_recalibrate_gatk',
+        input=output_from('apply_snp_recalibrate_gatk'),
+        filter=suffix('.recal_SNP.vcf'),
+        add_inputs=add_inputs(
+            ['variants/ALL.indel_recal', 'variants/ALL.indel_tranches']),
+        output='.raw.annotate.vqsr.vcf')
+        .follows('indel_recalibrate_gatk'))
+
+    # Apply VariantFiltration using GATK
+    (pipeline.transform(
+        task_func=stages.apply_variant_filtration_gatk,
+        name='apply_variant_filtration_gatk',
+        input=output_from('apply_indel_recalibrate_gatk'),
+        filter=suffix('.raw.annotate.vqsr.vcf'),
+        output='.raw.annotate.vqsr.filtered.vcf')
+        .follows('apply_indel_recalibrate_gatk'))
+
+    # Apply NORM
+    (pipeline.transform(
+        task_func=stages.apply_vt,
+        name='apply_vt',
+        input=output_from('apply_variant_filtration_gatk'),
+        filter=suffix('.raw.annotate.vqsr.filtered.vcf'),
+        # add_inputs=add_inputs(['variants/ALL.indel_recal', 'variants/ALL.indel_tranches']),
+        output='.raw.annotate.vqsr.filtered.vt.vcf')
+        .follows('apply_variant_filtration_gatk'))
+
+    # Apply VEP
+    (pipeline.transform(
+        task_func=stages.apply_vep,
+        name='apply_vep',
+        input=output_from('apply_vt'),
+        filter=suffix('.raw.annotate.vqsr.filtered.vt.vcf'),
+        # add_inputs=add_inputs(['variants/ALL.indel_recal', 'variants/ALL.indel_tranches']),
+        output='.vep.vcf')
+        .follows('apply_vt'))
+
+    # Apply BCF
+    (pipeline.transform(
+        task_func=stages.apply_bcf,
+        name='apply_bcf',
+        input=output_from('apply_vep'),
+        filter=suffix('.vep.vcf'),
+        # add_inputs=add_inputs(['variants/ALL.indel_recal', 'variants/ALL.indel_tranches']),
+        output='.vep.bcf.vcf')
+        .follows('apply_vep'))
+
+    # Apply SnpEff
+    (pipeline.transform(
+        task_func=stages.apply_snpeff,
+        name='apply_snpeff',
+        input=output_from('apply_bcf'),
+        filter=suffix('.vep.bcf.vcf'),
+        # add_inputs=add_inputs(['variants/ALL.indel_recal', 'variants/ALL.indel_tranches']),
+        output='.annotated.vcf')
+        .follows('apply_bcf'))
+
+    # Combine variants using GATK
     # (pipeline.transform(
     #     task_func=stages.combine_variants_gatk,
     #     name='combine_variants_gatk',
@@ -280,14 +288,14 @@ def make_pipeline(state):
     #     # output='.combined.vcf')
     #     output='ALL.raw.vqsr.vcf')
     #     .follows('apply_indel_recalibrate_gatk'))
-    # #
-    # # # Select variants using GATK
-    # # pipeline.transform(
-    # #     task_func=stages.select_variants_gatk,
-    # #     name='select_variants_gatk',
-    # #     input=output_from('combine_variants_gatk'),
-    # #     filter=suffix('.combined.vcf'),
-    # #     output='.selected.vcf')
     #
+    # # Select variants using GATK
+    # pipeline.transform(
+    #     task_func=stages.select_variants_gatk,
+    #     name='select_variants_gatk',
+    #     input=output_from('combine_variants_gatk'),
+    #     filter=suffix('.combined.vcf'),
+    #     output='.selected.vcf')
+
 
     return pipeline
