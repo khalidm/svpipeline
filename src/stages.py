@@ -37,7 +37,7 @@ def java_command_gridss(jar_path, mem_in_gb, command_args):
 	    "-Dsamjdk.use_async_io_write_samtools=true " \
 	    "-Dsamjdk.use_async_io_write_tribble=true " \
 	    "-Dsamjdk.compression_level=1 " \
-	    "-cp {jar} gridss.CallVariants " \
+	    "-cp {jar_path} gridss.CallVariants " \
 	    "TMP_DIR=. " \
 	    "WORKING_DIR=. {command_args}".format(jar_path=jar_path, mem=java_mem, command_args=command_args)
     return command
