@@ -375,11 +375,12 @@ class Stages(object):
         #cores = self.get_stage_options('apply_snpeff', 'cores')
         safe_make_dir('svariants')
         safe_make_dir('svariants/{sample}'.format(sample=sample_id))
+        assembly = sample_id + ".merged.gridss.assembly.bam"
         gridss_command = "REFERENCE_SEQUENCE=\"{reference}\" " \
-                "INPUT=\"{input_bam}\" OUTPUT=\"{vcf_out}\" " \
+                "INPUT=\"{input_bam}\" OUTPUT=\"{vcf_out}\" ASSEMBLY=\"{assembly}\" " \
 	            "BLACKLIST=\"{blacklist}\"".format(
                     reference=self.reference, input_bam=input_bam, vcf_out=vcf_out,
-                    blacklist=self.blacklist)
+                    assembly=assembly,blacklist=self.blacklist)
         self.run_gridss('apply_gridss', gridss_command)
         #run_snpeff(self.state, 'apply_snpeff', snpeff_command)
 
