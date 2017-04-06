@@ -26,9 +26,28 @@ def java_command(jar_path, mem_in_gb, command_args):
     return 'java -Xmx{mem}g -jar {jar_path} {command_args}'.format(
         jar_path=jar_path, mem=java_mem, command_args=command_args)
 
+def java_command_gridss(jar_path, mem_in_gb, command_args):
+    '''Build a string for running a java command'''
+    # Bit of room between Java's max heap memory and what was requested.
+    # Allows for other Java memory usage, such as stack.
+    java_mem = mem_in_gb - 2
+    command = "java -ea -Xmx{mem}g "\
+    	"-Dsamjdk.create_index=true "\
+    	"-Dsamjdk.use_async_io_read_samtools=true " \
+	    "-Dsamjdk.use_async_io_write_samtools=true " \
+	    "-Dsamjdk.use_async_io_write_tribble=true " \
+	    "-Dsamjdk.compression_level=1 " \
+	    "-cp {jar} gridss.CallVariants " \
+	    "TMP_DIR=. " \
+	    "WORKING_DIR=. {command_args}".format(jar_path=jar_path, mem=java_mem, command_args=command_args)
+    return command
 
 def run_java(state, stage, jar_path, mem, args):
     command = java_command(jar_path, mem, args)
+    run_stage(state, stage, command)
+
+def run_java_gridss(state, stage, jar_path, mem, args):
+    command = java_command_gridss(jar_path, mem, args)
     run_stage(state, stage, command)
 
 
@@ -61,7 +80,7 @@ class Stages(object):
 
     def run_gridss(self, stage, args):
         mem = int(self.state.config.get_stage_options(stage, 'mem'))
-        return run_java(self.state, stage, GRIDSS_JAR, mem, args)
+        return run_java_gridss(self.state, stage, GRIDSS_JAR, mem, args)
 
     def run_gatk(self, stage, args):
         mem = int(self.state.config.get_stage_options(stage, 'mem'))
