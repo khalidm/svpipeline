@@ -376,7 +376,7 @@ class Stages(object):
         safe_make_dir('svariants')
         safe_make_dir('svariants/{sample}'.format(sample=sample_id))
         gridss_command = "REFERENCE_SEQUENCE=\"{reference}\" " \
-                "INPUT=\"{input_bam}\" OUTPUT=\"{vcf_out}\" ASSEMBLY=\"{}\" " \
+                "INPUT=\"{input_bam}\" OUTPUT=\"{vcf_out}\" " \
 	            "BLACKLIST=\"{blacklist}\"".format(
                     reference=self.reference, input_bam=input_bam, vcf_out=vcf_out,
                     blacklist=self.blacklist)
